@@ -19,15 +19,15 @@ public class WeatherAppApplication {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins(
-                                "http://localhost:5173",
-                                "https://weather-cesium-web.vercel.app"
-                        )
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*")
-                        .allowCredentials(true);
+                        .allowedOrigins("*")  // Tüm originlere izin ver
+                        .allowedMethods("*")  // Tüm HTTP methodlarına izin ver
+                        .allowedHeaders("*")  // Tüm headerlara izin ver
+                        .exposedHeaders("*")  // Tüm headerlara client erişimi
+                        .maxAge(3600);        // Preflight yanıtlarının önbelleğe alınma süresi
+
+                // Not: allowCredentials(true) kullanmak için allowedOrigins("*") yerine
+                // belirli originler belirtilmelidir. Bu yüzden kaldırıldı.
             }
         };
     }
-
 }
