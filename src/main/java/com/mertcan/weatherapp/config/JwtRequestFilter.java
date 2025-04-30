@@ -30,8 +30,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         final String requestURI = request.getRequestURI();
 
-        // H2 konsolu veya auth endpoint'leri için filtrelemeyi atla
-        if (requestURI.contains("/h2-console") || requestURI.contains("/api/auth/")) {
+        // Health check, H2 konsolu veya auth endpoint'leri için filtrelemeyi atla
+        if (requestURI.equals("/") ||
+                requestURI.contains("/h2-console") ||
+                requestURI.contains("/api/auth/") ||
+                requestURI.contains("/auth/")) {
             chain.doFilter(request, response);
             return;
         }

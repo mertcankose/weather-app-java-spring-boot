@@ -12,6 +12,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -26,8 +31,13 @@ public class SecurityConfig {
                 // CSRF korumasını devre dışı bırak
                 .csrf(csrf -> csrf.disable())
 
+                // CORS yapılandırmasını etkinleştir
+                .cors(cors -> {})
+
                 // Hava durumu API'si için JWT doğrulaması gerekiyor
                 .authorizeHttpRequests(auth -> auth
+                        // Root endpoint'i için health check erişimi
+                        .requestMatchers("/").permitAll()
                         // Auth endpointlerine herkes erişebilir
                         .requestMatchers("/api/auth/**").permitAll()
                         // H2 console'a erişime izin ver (geliştirme için)
@@ -52,6 +62,20 @@ public class SecurityConfig {
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("https://weather-cesium-web.vercel.app", "http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
