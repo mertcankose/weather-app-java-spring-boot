@@ -1,6 +1,5 @@
 package com.mertcan.weatherapp.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,8 +16,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    //@Autowired
-    private JwtRequestFilter jwtRequestFilter;
+    private final JwtRequestFilter jwtRequestFilter;
+
+    // Constructor injection
+    public SecurityConfig(JwtRequestFilter jwtRequestFilter) {
+        this.jwtRequestFilter = jwtRequestFilter;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -33,10 +36,10 @@ public class SecurityConfig {
                         // H2 console'a erişime izin ver (geliştirme için)
                         .requestMatchers("/h2-console/**").permitAll()
                         // health
-                        .requestMatchers("/health", "/").permitAll()
+                        .requestMatchers("/health", "/", "/api/test/**").permitAll()
                         // Hava durumu API'si JWT doğrulaması gerektirir
                         .requestMatchers("/api/weather/**").authenticated()
-                        // Diğer tüm istekler için izin ver (bunu ihtiyaca göre güncelleyebilirsiniz)
+                        // Diğer tüm istekler için izin ver
                         .anyRequest().permitAll()
                 )
 
