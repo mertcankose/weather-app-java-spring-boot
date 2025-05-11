@@ -45,6 +45,43 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+// Memory optimizasyonu için bootJar konfigürasyonu
+bootJar {
+    layered()
+    excludeDevtools = true
+
+    // Production'da gereksiz dosyaları hariç tut
+    excludes = [
+            '**/application-dev.yml',
+            '**/application-test.yml',
+            '**/*.log'
+    ]
+}
+
+// JVM heap size ayarları
+bootRun {
+    jvmArgs = [
+            "-Xmx512m",
+            "-XX:MaxMetaspaceSize=256m"
+    ]
+}
+
+// Test içi memory ayarları
 tasks.named('test') {
     useJUnitPlatform()
+    jvmArgs = [
+            "-Xmx256m",
+            "-XX:MaxMetaspaceSize=128m"
+    ]
+}
+
+// Production build optimizasyonu
+tasks.register('buildForProduction') {
+    group = 'build'
+    description = 'Builds the application optimized for production deployment'
+
+    dependsOn clean
+    dependsOn bootJar
+
+    tasks.findByName('bootJar').mustRunAfter('clean')
 }
