@@ -32,6 +32,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         // H2 console'a erişime izin ver (geliştirme için)
                         .requestMatchers("/h2-console/**").permitAll()
+                        // health
+                        .requestMatchers("/health", "/").permitAll()
                         // Hava durumu API'si JWT doğrulaması gerektirir
                         .requestMatchers("/api/weather/**").authenticated()
                         // Diğer tüm istekler için izin ver (bunu ihtiyaca göre güncelleyebilirsiniz)
