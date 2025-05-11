@@ -5,8 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,8 +18,6 @@ import java.io.IOException;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
-
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
@@ -33,24 +29,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String requestURI = request.getRequestURI();
-        logger.info("JWT Filter Processing URI: {}", requestURI);
 
-        // Health check ve açık endpointler için filtrelemeyi atla
-        if (requestURI.equals("/") ||
-                requestURI.equals("/health") ||
-                requestURI.contains("/h2-console") ||
-                requestURI.contains("/api/auth/") ||
-                requestURI.contains("/auth/") ||
-                requestURI.contains("/api/weather/") ||
-                requestURI.contains("/weather/")) {
-
-            logger.info("Skipping JWT validation for path: {}", requestURI);
+        // H2 konsolu veya auth endpoint'leri için filtrelemeyi atla
+        if (requestURI.contains("/h2-console") || requestURI.contains("/api/auth/")) {
             chain.doFilter(request, response);
             return;
         }
 
         final String requestTokenHeader = request.getHeader("Authorization");
-        logger.debug("Authorization header: {}", requestTokenHeader);
 
         String username = null;
         String jwtToken = null;
@@ -59,33 +45,23 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             jwtToken = requestTokenHeader.substring(7);
             try {
                 username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-                logger.info("JWT Token için kullanıcı adı: {}", username);
             } catch (Exception e) {
-                logger.warn("JWT Token geçersiz: {}", e.getMessage());
+                logger.warn("JWT Token geçersiz");
             }
         } else {
-            logger.debug("JWT Token 'Bearer ' ile başlamıyor veya bulunamadı");
+            logger.warn("JWT Token 'Bearer ' ile başlamıyor veya bulunamadı");
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-                logger.debug("Kullanıcı yüklendi: {}", userDetails.getUsername());
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-                if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                    logger.info("Kullanıcı doğrulandı: {}", username);
-                } else {
-                    logger.warn("Token doğrulanamadı");
-                }
-            } catch (Exception e) {
-                logger.error("Kullanıcı yüklenirken hata: {}", e.getMessage());
+            if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-
         chain.doFilter(request, response);
     }
 }

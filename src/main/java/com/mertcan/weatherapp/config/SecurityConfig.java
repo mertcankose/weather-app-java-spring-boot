@@ -12,7 +12,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
 @EnableWebSecurity
@@ -23,32 +22,19 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        // CORS yapılandırmasını elle tanımla
-        CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.addAllowedOrigin("*");
-        corsConfiguration.addAllowedMethod("*");
-        corsConfiguration.addAllowedHeader("*");
-        corsConfiguration.setExposedHeaders(java.util.Arrays.asList("Authorization", "Content-Type"));
-        corsConfiguration.setMaxAge(3600L);
-
         http
                 // CSRF korumasını devre dışı bırak
                 .csrf(csrf -> csrf.disable())
 
-                // CORS yapılandırmasını etkinleştir
-                .cors(cors -> cors.configurationSource(request -> corsConfiguration))
-
-                // Tüm isteklere izin ver
+                // Hava durumu API'si için JWT doğrulaması gerekiyor
                 .authorizeHttpRequests(auth -> auth
-                        // Root endpoint'i için health check erişimi
-                        .requestMatchers("/", "/health").permitAll()
                         // Auth endpointlerine herkes erişebilir
-                        .requestMatchers("/api/auth/**", "/auth/**").permitAll()
-                        // H2 console'a erişime izin ver
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // H2 console'a erişime izin ver (geliştirme için)
                         .requestMatchers("/h2-console/**").permitAll()
-                        // Hava durumu API'si için
-                        .requestMatchers("/api/weather/**", "/weather/**").permitAll()
-                        // Diğer tüm istekler için izin ver
+                        // Hava durumu API'si JWT doğrulaması gerektirir
+                        .requestMatchers("/api/weather/**").authenticated()
+                        // Diğer tüm istekler için izin ver (bunu ihtiyaca göre güncelleyebilirsiniz)
                         .anyRequest().permitAll()
                 )
 
