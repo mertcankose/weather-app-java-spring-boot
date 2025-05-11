@@ -1,9 +1,7 @@
 package com.mertcan.weatherapp.config;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -14,11 +12,11 @@ import org.springframework.context.annotation.Configuration;
                 description = "Hava durumu uygulaması API dokümantasyonu"
         )
 )
-@SecurityScheme(
-        name = "bearerAuth",
-        type = SecuritySchemeType.HTTP,
-        bearerFormat = "JWT",
-        scheme = "bearer"
-)
+// @SecurityScheme(  // Bu kısmı comment'e alın
+//         name = "bearerAuth",
+//         type = SecuritySchemeType.HTTP,
+//         bearerFormat = "JWT",
+//         scheme = "bearer"
+// )
 public class OpenApiConfig {
 }
